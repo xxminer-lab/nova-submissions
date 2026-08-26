@@ -124,6 +124,7 @@ def main():
         affinity_mw_correction=bcfg["affinity_mw_correction"],
         override=True,
         num_workers=0,
+        no_kernels=True,
     )
 
     # Collect scores
