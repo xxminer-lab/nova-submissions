@@ -110,6 +110,7 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--target", default="P40261")
     ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--offset", type=int, default=0)
     args = ap.parse_args()
     TARGET = args.target
 
@@ -128,9 +129,11 @@ def main():
             parts = line.split("\t")
             if len(parts) >= 2:
                 rows.append((parts[0], parts[1]))
+    if args.offset:
+        rows = rows[args.offset:]
     if args.limit:
         rows = rows[: args.limit]
-    print(f"Scoring {len(rows)} candidates", flush=True)
+    print(f"Scoring {len(rows)} candidates (offset={args.offset}, limit={args.limit})", flush=True)
 
     tmp = tempfile.mkdtemp(prefix="boltz_")
     input_dir = os.path.join(tmp, "inputs")
