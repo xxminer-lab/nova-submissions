@@ -9,15 +9,17 @@ echo "BOOTSTRAP rxn=${RXN_ID} limit=${LIMIT}"
 
 # Full Boltz dependency stack (from external_tools/boltz/pyproject.toml) PLUS
 # pytorch_lightning (imported directly by boltz/main.py but not declared) and
-# omegaconf (used by the scorer). Install boltz itself in editable-ish mode via
-# PYTHONPATH (the scorer already inserts external_tools/boltz/src into sys.path).
-pip install -q \
+# omegaconf (used by the scorer). Surface pip errors (no || true, no tail) so a
+# resolution conflict is visible in the logs instead of silently passing.
+pip install \
   "torch>=2.2" "numpy>=1.26,<2.0" hydra-core==1.3.2 "rdkit>=2024.3.2" \
   dm-tree==0.1.8 "requests==2.32.3" "pandas>=2.2.2" types-requests \
   einops==0.8.0 einx==0.3.0 fairscale==0.4.13 mashumaro==3.14 modelcif==1.2 \
   click==8.1.7 pyyaml==6.0.2 biopython==1.84 scipy==1.13.1 numba==0.61.0 \
   gemmi==0.6.5 scikit-learn==1.6.1 chembl_structure_pipeline==1.2.2 \
-  pytorch-lightning omegaconf 2>&1 | tail -3 || true
+  pytorch-lightning omegaconf 2>&1 | tail -15
+echo "PIP_EXIT=${PIPESTATUS[0]}"
+python3 -c "import pytorch_lightning; print('pytorch_lightning OK', pytorch_lightning.__version__)"
 
 mkdir -p /nova
 cd /tmp
