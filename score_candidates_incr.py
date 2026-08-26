@@ -110,6 +110,7 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--target", default="P40261")
     ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--offset", type=int, default=0)
     args = ap.parse_args()
     TARGET = args.target
 
@@ -128,9 +129,11 @@ def main():
             parts = line.split("\t")
             if len(parts) >= 2:
                 rows.append((parts[0], parts[1]))
+    if args.offset:
+        rows = rows[args.offset:]
     if args.limit:
         rows = rows[: args.limit]
-    print(f"Scoring {len(rows)} candidates", flush=True)
+    print(f"Scoring {len(rows)} candidates (offset={args.offset}, limit={args.limit})", flush=True)
 
     tmp = tempfile.mkdtemp(prefix="boltz_")
     input_dir = os.path.join(tmp, "inputs")
@@ -139,7 +142,26 @@ def main():
     os.makedirs(output_dir, exist_ok=True)
 
     id_map = {}
+    skipped = 0
     for name, smiles in rows:
+        # Pre-filter: drop molecules that fail 3D-conformer generation. Boltz's
+        # featurizer raises "Failed to compute 3D conformer" on these, which would
+        # crash the whole single-batch predict() call. Such a molecule would also
+        # fail in the validator's scoring -> void submission, so excluding it is correct.
+        try:
+            from rdkit import Chem
+            from rdkit.Chem import AllChem
+            _m = Chem.MolFromSmiles(smiles)
+            if _m is None:
+                skipped += 1
+                continue
+            _mh = Chem.AddHs(_m)
+            if AllChem.EmbedMolecule(_mh, randomSeed=42) != 0:
+                skipped += 1
+                continue
+        except Exception:
+            skipped += 1
+            continue
         mol_idx = get_record_id(smiles, 68)
         id_map[mol_idx] = (name, smiles)
         data = {
@@ -153,7 +175,7 @@ def main():
         with open(os.path.join(input_dir, f"{mol_idx}_{args.target}.yaml"), "w") as f:
             f.write(yaml.safe_dump(data, sort_keys=False, default_flow_style=False))
 
-    print(f"Wrote {len(id_map)} YAML inputs", flush=True)
+    print(f"Wrote {len(id_map)} YAML inputs (skipped {skipped} unembeddable)", flush=True)
 
     pred_root = os.path.join(output_dir, "boltz_results_inputs", "predictions")
     stop_event = threading.Event()
