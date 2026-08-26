@@ -24,6 +24,12 @@ os.environ.setdefault("OMP_NUM_THREADS", "1")
 os.environ.setdefault("MKL_NUM_THREADS", "1")
 os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
 
+import torch
+try:
+    import omegaconf
+    torch.serialization.add_safe_globals([omegaconf.dictconfig.DictConfig, omegaconf.listconfig.ListConfig])
+except Exception as _e:
+    pass
 import yaml
 
 
