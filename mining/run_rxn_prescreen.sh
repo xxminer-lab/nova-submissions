@@ -54,3 +54,18 @@ if os.path.exists(p):
 else:
     print("no scores file produced")
 PY
+
+# Dump the FULL scores TSV as a base64 blob so a single short ModalLogs tail
+# captures every score (SCORE lines scroll out of the tail window otherwise).
+python3 - <<PY
+import base64, os
+p = "/nova/scores_rxn${RXN_ID}.tsv"
+if os.path.exists(p):
+    b = base64.b64encode(open(p, "rb").read()).decode()
+    print("SCORES_B64_BEGIN")
+    for i in range(0, len(b), 1000):
+        print(b[i:i+1000])
+    print("SCORES_B64_END")
+else:
+    print("no scores file for b64 dump")
+PY
