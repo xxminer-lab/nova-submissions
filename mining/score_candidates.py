@@ -24,10 +24,22 @@ os.environ.setdefault("OMP_NUM_THREADS", "1")
 os.environ.setdefault("MKL_NUM_THREADS", "1")
 os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
 
+import os as _os
+_os.environ["TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD"]="1"
 import torch
 try:
     import omegaconf
-    torch.serialization.add_safe_globals([omegaconf.dictconfig.DictConfig, omegaconf.listconfig.ListConfig])
+    from omegaconf import dictconfig, listconfig, base as _ob
+    _g=[dictconfig.DictConfig, listconfig.ListConfig, _ob.ContainerMetadata]
+    try:
+        from omegaconf.nodes import ValueNode
+        _g.append(ValueNode)
+    except Exception: pass
+    try:
+        from omegaconf.base import Metadata
+        _g.append(Metadata)
+    except Exception: pass
+    torch.serialization.add_safe_globals(_g)
 except Exception as _e:
     pass
 import yaml
