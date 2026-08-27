@@ -1,6 +1,6 @@
 #!/bin/bash
 # FAST NOVA Boltz-2 pre-screen bootstrap for Modal, with PRE-DOWNLOADED weights.
-# Usage: run_rxn_prescreen_v7.sh <RXN_ID> <LIMIT>
+# Usage: run_rxn_prescreen_v8.sh <RXN_ID> <LIMIT> <OFFSET>
 #
 # KEY FIX vs v6: try HuggingFace FIRST (works at ~56 MB/s with redirect-follow),
 # model-gateway only as fallback. v6 tried model-gateway first, which hangs
@@ -10,7 +10,7 @@ set -e
 RXN_ID="${1:-2}"
 LIMIT="${2:-120}"
 OFFSET="${3:-0}"
-echo "BOOTSTRAP_V7 rxn=${RXN_ID} limit=${LIMIT}"
+echo "BOOTSTRAP_V8 rxn=${RXN_ID} limit=${LIMIT} offset=${OFFSET}"
 
 mkdir -p /nova
 cd /tmp
