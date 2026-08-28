@@ -196,8 +196,8 @@ def main():
             seed=68,
             affinity_mw_correction=bcfg["affinity_mw_correction"],
             override=True,
-            num_workers=4,
-            no_kernels=False,
+            num_workers=0,
+            no_kernels=True,
         )
     finally:
         stop_event.set()
