@@ -111,14 +111,14 @@ cd /nova
 python3 - <<PY
 import urllib.request
 base = "https://raw.githubusercontent.com/xxminer-lab/nova-submissions/main/mining/"
-urllib.request.urlretrieve(base + "score_candidates_incr_v12.py", "/nova/score_candidates_incr_v12.py")
+urllib.request.urlretrieve(base + "score_candidates_incr_v13.py", "/nova/score_candidates_incr_v13.py")
 urllib.request.urlretrieve(base + "${CAND_FILE}", "/nova/candidates.tsv")
 print("fetched scorer + candidates")
 PY
 
 echo "FETCHED"; wc -l /nova/candidates.tsv
-python3 /nova/score_candidates_incr_v12.py --candidates /nova/candidates.tsv --out "/nova/scores_rxn${RXN_ID}.tsv" --target P40261 --limit "${LIMIT}" --offset "${OFFSET}" 2>&1 \
-  | grep --line-buffered -E "SCORE|Scoring|Wrote|Scored|Error|Traceback|error"
+python3 /nova/score_candidates_incr_v13.py --candidates /nova/candidates.tsv --out "/nova/scores_rxn${RXN_ID}.tsv" --target P40261 --limit "${LIMIT}" --offset "${OFFSET}" --batch-size 12 --batch-timeout 1200 2>&1 \
+  | grep --line-buffered -E "SCORE|Scoring|Prepared|BATCH|Scored|Error|Traceback|error"
 echo "DONE"
 python3 - <<PY
 import csv, os
