@@ -197,7 +197,7 @@ def main():
             affinity_mw_correction=bcfg["affinity_mw_correction"],
             override=True,
             num_workers=4,
-            no_kernels=True,
+            no_kernels=False,
         )
     finally:
         stop_event.set()
