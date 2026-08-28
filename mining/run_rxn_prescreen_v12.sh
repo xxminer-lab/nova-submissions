@@ -71,15 +71,17 @@ def dl_chunked(url, dest):
         pos = 0
         while pos < total:
             end = min(pos + CHUNK - 1, total - 1)
-            for attempt in range(4):
+            for attempt in range(12):
                 try:
                     req = urllib.request.Request(url, headers={"Range": f"bytes={pos}-{end}"})
                     with urllib.request.urlopen(req, timeout=60) as r:
                         f.write(r.read())
                     break
                 except Exception as e:
-                    print(f"chunk {pos}-{end} attempt {attempt+1} failed: {type(e).__name__}", flush=True)
-                    if attempt == 3:
+                    wait = min(5 * (2 ** attempt), 120)
+                    print(f"chunk {pos}-{end} attempt {attempt+1} failed: {type(e).__name__}; backoff {wait}s", flush=True)
+                    time.sleep(wait)
+                    if attempt == 11:
                         raise
             pos = end + 1
             print(f"  {pos/1e6:.0f}/{total/1e6:.0f} MB ({pos/1e6/max(time.time()-t0,1):.1f} MB/s)", flush=True)
