@@ -41,6 +41,12 @@ for i in $(seq 1 720); do
 done
 [ -f "$RXNFILE" ] || { echo "$(date +%H:%M:%S) TIMEOUT waiting for epoch $TARGET" >> "$LOG"; exit 1; }
 RXN=$(cat "$RXNFILE" | tr -d '[:space:]'); RNUM=${RXN#rxn:}
+# Archive-clean this reaction's bank against the LIVE archive (validators fetch a
+# fresh archive at scoring; my own past submissions invalidate repeats once the
+# archive catches up). ~90s, affordable inside the 361-block window.
+$PY nova/mining/filter_bank_archive.py $RNUM >>"$LOG" 2>&1 \
+  && cp nova/mining/boltz_scores_rxn${RNUM}_clean.tsv nova/mining/boltz_scores_rxn${RNUM}.tsv \
+  && echo "$(date +%H:%M:%S) bank archive-cleaned for $RXN" >> "$LOG"
 # Build payload
 $PY nova/mining/build_submission.py --rxn $RNUM --scores nova/mining/boltz_scores_rxn${RNUM}.tsv --out /tmp/payload_${TARGET}_rxn${RNUM}.json >>"$LOG" 2>&1
 MOLS=$($PY -c "import json;d=json.load(open('/tmp/payload_${TARGET}_rxn${RNUM}.json'));print(d['payload'].split('|')[0])" 2>>"$LOG")
