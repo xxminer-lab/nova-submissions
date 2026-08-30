@@ -52,9 +52,13 @@ $PY nova/mining/build_submission.py --rxn $RNUM --scores nova/mining/boltz_score
 MOLS=$($PY -c "import json;d=json.load(open('/tmp/payload_${TARGET}_rxn${RNUM}.json'));print(d['payload'].split('|')[0])" 2>>"$LOG")
 [ -n "$MOLS" ] || { echo "$(date +%H:%M:%S) BUILD FAILED for $RXN" >> "$LOG"; exit 1; }
 echo "$(date +%H:%M:%S) built payload for $RXN (${#MOLS} chars)" >> "$LOG"
-# Fresh per-epoch nanobody lottery ticket (seed=epoch so it is unique vs the archive;
-# "~" forfeits the 40% nanobody category, a candidate costs nothing and can only win)
-NANO=$($PY nova/mining/nanobody_gen.py --n 1 --seed $TARGET --out /tmp/nano_${TARGET}.txt >>"$LOG" 2>&1 && head -1 /tmp/nano_${TARGET}.txt 2>/dev/null)
+# Per-epoch nanobody: SAR mutant of a top BoltzGen-scored archive scaffold
+# (3 conservative CDR3 subs; novel hash, 9-mer Jaccard ~0.76 < 0.9 cap).
+# Falls back to random-CDR3 generator, then "~" (forfeit category).
+NANO=$($PY nova/mining/nano_sar.py --seed $TARGET --out /tmp/nano_${TARGET}.txt 2>>"$LOG")
+if [ -z "$NANO" ]; then
+  NANO=$($PY nova/mining/nanobody_gen.py --n 1 --seed $TARGET --out /tmp/nano_${TARGET}.txt >>"$LOG" 2>&1 && head -1 /tmp/nano_${TARGET}.txt 2>/dev/null)
+fi
 [ -n "$NANO" ] || NANO="~"
 echo "$(date +%H:%M:%S) nanobody: ${#NANO} chars" >> "$LOG"
 # Encrypt + stage (derive CURRENT uid dynamically — re-registration changes uid,
