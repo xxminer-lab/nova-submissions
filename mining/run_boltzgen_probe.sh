@@ -1,17 +1,25 @@
 #!/bin/bash
-# BoltzGen feasibility probe runner for Modal (B200, cuda13).
-# Clones the nova tree, installs boltzgen, runs the wrapper probe on 4 sequences.
+# BoltzGen feasibility probe runner v2 for Modal (B200, cuda13).
+# Clones UPSTREAM metanova-labs/nova (byte-identical to my vendored tree),
+# installs boltzgen, fetches the probe script from my submissions repo, runs it.
 set -e
-echo "BOLTZGEN_PROBE_BOOT"
+echo "BOLTZGEN_PROBE_BOOT v2"
 mkdir -p /nova
 cd /tmp
 python3 - <<'PY'
 import urllib.request, tarfile, io
-d = urllib.request.urlopen("https://codeload.github.com/xxminer-lab/nova-submissions/tar.gz/refs/heads/main").read()
+d = urllib.request.urlopen("https://codeload.github.com/metanova-labs/nova/tar.gz/refs/heads/main").read()
 tarfile.open(fileobj=io.BytesIO(d), mode="r:gz").extractall(".")
-print("repo extracted")
+print("upstream repo extracted")
 PY
-cp -r nova-submissions-main/. /nova/ 2>/dev/null || cp -r nova-submissions-main/* /nova/
+cp -r nova-main/. /nova/ 2>/dev/null || cp -r nova-main/* /nova/
+mkdir -p /nova/mining
+python3 - <<'PY'
+import urllib.request
+u = urllib.request.urlopen("https://raw.githubusercontent.com/xxminer-lab/nova-submissions/main/mining/boltzgen_probe.py").read()
+open("/nova/mining/boltzgen_probe.py", "wb").write(u)
+print("probe script fetched")
+PY
 
 echo "installing torch"
 pip install "torch==2.7.1" 2>&1 | tail -2
