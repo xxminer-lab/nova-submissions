@@ -26,7 +26,8 @@ pip install "torch==2.7.1" 2>&1 | tail -2
 echo "installing boltzgen"
 cd /nova/external_tools/boltzgen
 pip install . 2>&1 | tail -4
-python3 -c "import boltzgen; print('boltzgen import OK')"
+pip install bittensor 2>&1 | tail -1
+python3 -c "import boltzgen, bittensor; print('boltzgen + bittensor import OK')"
 
 echo "PROBE_RUN"
 cd /nova
